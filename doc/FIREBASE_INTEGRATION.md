@@ -12,7 +12,7 @@ The current application-level integration performs these actions:
 - fetches the maintenance flag after the splash flow reaches `MainActivity`;
 - shows a maintenance page after launch when `gjp_lab_maintenance_enabled` is `true`.
 
-The app does not currently record custom Crashlytics exceptions or create custom Performance traces. The examples below show safe extension points for those features.
+The Firebase feature screen also provides safe demonstrations for a non-fatal Crashlytics exception and a custom Performance trace.
 
 ## Common Firebase setup
 
@@ -187,7 +187,7 @@ crashlytics.setCustomKey("app_version", BuildConfig.VERSION_NAME)
 
 `buildConfig = true` is enabled in `app/build.gradle.kts` so `BuildConfig.VERSION_NAME` is available.
 
-The current application only sets the `app_version` custom key. The non-fatal exception and logging snippets below are examples; no application code currently calls `recordException()` or adds feature-specific Crashlytics logs.
+The application sets the `app_version` custom key. The Firebase feature screen can also record a non-fatal demo exception and a non-sensitive demo log.
 
 ### Non-fatal exception sample
 
@@ -254,7 +254,7 @@ implementation(libs.firebase.perf)
 
 No manual initialization is required for the automatic metrics.
 
-The current application does not create a custom Performance trace. The trace below is an example for instrumenting a specific operation. The existing `HttpURLConnection` feature remains eligible for supported automatic network monitoring when the Performance plugin is active.
+The Firebase feature screen runs a short `firebase_demo_trace` custom trace. The existing `HttpURLConnection` feature remains eligible for supported automatic network monitoring when the Performance plugin is active.
 
 ### Custom trace sample
 
@@ -294,6 +294,8 @@ These are all project files changed for the Firebase integration:
 | `app/src/main/java/com/ganjianping/lab/ak/integration/firebase/FirebaseConstants.kt` | Centralizes Firebase event names, Crashlytics keys, and Remote Config keys. |
 | `app/src/main/java/com/ganjianping/lab/ak/MainActivity.kt` | Fetches the maintenance flag after launch and selects the maintenance or dashboard screen. |
 | `app/src/main/java/com/ganjianping/lab/ak/MaintenanceScreen.kt` | Displays the maintenance message and retry action. |
+| `app/src/main/java/com/ganjianping/lab/ak/features/firebase/FirebaseFeatureActivity.kt` | Hosts the Firebase integration demonstration screen. |
+| `app/src/main/java/com/ganjianping/lab/ak/features/firebase/FirebaseFeatureScreen.kt` | Provides actions for Analytics, Crashlytics, Remote Config, and Performance Monitoring. |
 | `doc/FIREBASE_INTEGRATION.md` | Documents the integration and usage examples. |
 
 ## Verification commands

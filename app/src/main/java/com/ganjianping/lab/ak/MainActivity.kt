@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.ganjianping.lab.ak.features.httpurlconnection.HttpURLConnectionActivity
 import com.ganjianping.lab.ak.features.deviceinfo.DeviceInfoActivity
+import com.ganjianping.lab.ak.features.firebase.FirebaseFeatureActivity
 import com.ganjianping.lab.ak.common.theme.GJPLabTheme
 import com.ganjianping.lab.ak.integration.firebase.FirebaseIntegration
 import org.koin.android.ext.android.inject
@@ -33,6 +34,7 @@ class MainActivity : ComponentActivity() {
                             val activity = when (action) {
                                 FeatureAction.DeviceInfo -> DeviceInfoActivity::class.java
                                 FeatureAction.HttpURLConnection -> HttpURLConnectionActivity::class.java
+                                FeatureAction.Firebase -> FirebaseFeatureActivity::class.java
                             }
                             startActivity(Intent(this, activity))
                         }

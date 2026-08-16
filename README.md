@@ -14,6 +14,7 @@ The repository also includes a structured [Android development tuition guide](AN
 - Coroutine-based network I/O on `Dispatchers.IO`, 15-second connect/read timeouts, response headers, error bodies, and TLS error handling.
 - JSON pretty-printing when a response contains a JSON object or array.
 - Firebase Analytics, Remote Config, Crashlytics, and Performance Monitoring.
+- An interactive Firebase feature screen for testing Analytics events, non-fatal Crashlytics reports, Remote Config, and custom Performance traces.
 - Local unit-test and instrumented-test modules ready for extension.
 
 ## Requirements

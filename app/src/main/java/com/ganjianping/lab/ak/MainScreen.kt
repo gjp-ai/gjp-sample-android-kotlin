@@ -24,7 +24,8 @@ import androidx.compose.ui.unit.dp
 
 enum class FeatureAction {
     DeviceInfo,
-    HttpURLConnection
+    HttpURLConnection,
+    Firebase
 }
 
 private data class Feature(
@@ -37,6 +38,7 @@ private data class Feature(
 private val features = listOf(
     Feature("OS & hardware", "Explore device and Android details", "01", FeatureAction.DeviceInfo),
     Feature("HttpURLConnection", "Make requests with the native API", "02", FeatureAction.HttpURLConnection),
+    Feature("Firebase", "Explore Analytics, Config, Crashlytics, and Performance", "03", FeatureAction.Firebase),
 )
 
 @Composable
