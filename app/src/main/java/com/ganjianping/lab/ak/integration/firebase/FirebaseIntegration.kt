@@ -22,6 +22,7 @@ class FirebaseIntegration(
                     .setMinimumFetchIntervalInSeconds(if (BuildConfig.DEBUG) 0 else 3600)
                     .build()
             )
+
             setDefaultsAsync(mapOf(FirebaseConstants.RemoteConfigMaintenanceEnabled to false))
         }
     }
