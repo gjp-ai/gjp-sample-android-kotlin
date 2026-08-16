@@ -36,7 +36,7 @@ fun MaintenanceScreen(onRetry: () -> Unit) {
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                text = "GJPLab is temporarily unavailable while we perform maintenance. Please try again shortly.",
+                text = "GJP Lab is temporarily unavailable while we perform maintenance. Please try again shortly.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center

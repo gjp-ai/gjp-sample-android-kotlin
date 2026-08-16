@@ -7,4 +7,7 @@ object FirebaseConstants {
     const val CrashlyticsDemoKey = "firebase_demo"
     const val RemoteConfigMaintenanceEnabled = "gjp_lab_maintenance_enabled"
     const val PerformanceDemoTrace = "firebase_demo_trace"
+    const val MessagingDemoTopic = "gjp_lab_demo"
+    const val MessagingNotificationChannelId = "gjp_lab_firebase_messages"
+    const val MessagingNotificationChannelName = "Firebase messages"
 }

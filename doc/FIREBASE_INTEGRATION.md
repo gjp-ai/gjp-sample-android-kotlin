@@ -1,6 +1,6 @@
 # Firebase integration
 
-This Android app is connected to the `gjp-lab` Firebase project for Analytics, Remote Config, Crashlytics, and Performance Monitoring.
+This Android app is connected to the `gjp-lab` Firebase project for Analytics, Remote Config, Crashlytics, Performance Monitoring, and Cloud Messaging.
 
 The Android application ID is `com.ganjianping.lab.ak`.
 
@@ -10,7 +10,8 @@ The current application-level integration performs these actions:
 - records the app version in Crashlytics as `app_version`;
 - configures Remote Config with a safe `gjp_lab_maintenance_enabled = false` default;
 - fetches the maintenance flag after the splash flow reaches `MainActivity`;
-- shows a maintenance page after launch when `gjp_lab_maintenance_enabled` is `true`.
+- shows a maintenance page after launch when `gjp_lab_maintenance_enabled` is `true`;
+- retrieves FCM registration tokens and can subscribe to the `gjp_lab_demo` topic.
 
 The Firebase feature screen also provides safe demonstrations for a non-fatal Crashlytics exception and a custom Performance trace.
 
@@ -277,6 +278,36 @@ import com.google.firebase.perf.FirebasePerformance
 
 The existing HTTP URL connection code can be monitored automatically by the Performance Monitoring plugin. Review the Performance dashboard after deploying a build to a test device.
 
+## Firebase Cloud Messaging
+
+Firebase Cloud Messaging (FCM) delivers notification and data messages to the app. This project registers `GJPLabFirebaseMessagingService` under `integration/firebase` to receive token refreshes and foreground messages.
+
+### Dependency
+
+In `app/build.gradle.kts`:
+
+```kotlin
+implementation(libs.firebase.messaging)
+```
+
+The dependency is versioned by the Firebase Android BoM.
+
+### Token and topic demo
+
+The Firebase feature screen uses the injected `FirebaseIntegration` class to:
+
+- retrieve the current FCM registration token;
+- subscribe to the `gjp_lab_demo` topic;
+- display a shortened token or operation status.
+
+The app requests `POST_NOTIFICATIONS` permission when the Firebase feature screen opens on Android 13 and newer. The token can still be retrieved when notification permission is denied, but notifications will not be shown.
+
+### Message handling
+
+`GJPLabFirebaseMessagingService` creates the notification channel `gjp_lab_firebase_messages` and displays foreground messages using the notification title/body or equivalent `title`/`body` data fields. Tapping the notification opens `MainActivity`.
+
+For testing, send a notification or data message from the Firebase Console to the app token or the `gjp_lab_demo` topic. Server-side message sending should use Firebase Admin SDK or FCM HTTP v1 with credentials kept outside the mobile app.
+
 ## Complete file change map
 
 These are all project files changed for the Firebase integration:
@@ -285,17 +316,18 @@ These are all project files changed for the Firebase integration:
 | --- | --- |
 | `app/google-services.json` | Firebase project and Android app configuration for `com.ganjianping.lab.ak`. |
 | `build.gradle.kts` | Declares the Google Services, Crashlytics, and Performance project-level plugins. |
-| `app/build.gradle.kts` | Applies Firebase plugins, enables BuildConfig generation, imports the Firebase BoM, and adds Analytics, Remote Config, Crashlytics, and Performance dependencies. |
+| `app/build.gradle.kts` | Applies Firebase plugins, enables BuildConfig generation, imports the Firebase BoM, and adds Analytics, Remote Config, Crashlytics, Performance, and Messaging dependencies. |
 | `gradle/libs.versions.toml` | Centralizes Firebase BoM, Gradle plugin, library, and version-catalog aliases. |
 | `app/src/main/java/com/ganjianping/lab/ak/di/AppModule.kt` | Includes the Firebase Koin module with the app’s other dependency modules. |
 | `app/src/main/java/com/ganjianping/lab/ak/GJPLabApplication.kt` | Starts the app-level Firebase integration during application startup. |
 | `app/src/main/java/com/ganjianping/lab/ak/integration/firebase/FirebaseIntegration.kt` | Encapsulates Firebase Analytics, Crashlytics, Remote Config setup, and maintenance-flag fetching. |
 | `app/src/main/java/com/ganjianping/lab/ak/integration/firebase/FirebaseModule.kt` | Registers Firebase SDK instances and `FirebaseIntegration` as Koin singletons. |
 | `app/src/main/java/com/ganjianping/lab/ak/integration/firebase/FirebaseConstants.kt` | Centralizes Firebase event names, Crashlytics keys, and Remote Config keys. |
+| `app/src/main/java/com/ganjianping/lab/ak/integration/firebase/GJPLabFirebaseMessagingService.kt` | Receives FCM token updates and messages, and displays foreground notifications. |
 | `app/src/main/java/com/ganjianping/lab/ak/MainActivity.kt` | Fetches the maintenance flag after launch and selects the maintenance or dashboard screen. |
 | `app/src/main/java/com/ganjianping/lab/ak/MaintenanceScreen.kt` | Displays the maintenance message and retry action. |
 | `app/src/main/java/com/ganjianping/lab/ak/features/firebase/FirebaseFeatureActivity.kt` | Hosts the Firebase integration demonstration screen. |
-| `app/src/main/java/com/ganjianping/lab/ak/features/firebase/FirebaseFeatureScreen.kt` | Provides actions for Analytics, Crashlytics, Remote Config, and Performance Monitoring. |
+| `app/src/main/java/com/ganjianping/lab/ak/features/firebase/FirebaseFeatureScreen.kt` | Provides actions for Analytics, Crashlytics, Remote Config, Performance Monitoring, and Cloud Messaging. |
 | `doc/FIREBASE_INTEGRATION.md` | Documents the integration and usage examples. |
 
 ## Verification commands

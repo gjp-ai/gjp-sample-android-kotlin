@@ -32,7 +32,7 @@ fun SplashScreen() {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             BrandMark()
             Spacer(Modifier.height(20.dp))
-            Text("GJPLab", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
+            Text("GJP Lab", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
             Text("Android feature lab", color = Color.White.copy(alpha = 0.7f), style = MaterialTheme.typography.bodyMedium)
         }
     }
