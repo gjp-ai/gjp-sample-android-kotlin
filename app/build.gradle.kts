@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.ganjianping.ak.sample"
+    namespace = "com.ganjianping.lab.ak"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.ganjianping.ak.sample"
+        applicationId = "com.ganjianping.lab.ak"
         minSdk = 30
         targetSdk = 37
         versionCode = 1

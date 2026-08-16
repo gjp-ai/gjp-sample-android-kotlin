@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "907061493172",
-    "project_id": "gjp-sample",
-    "storage_bucket": "ganjp-sample.firebasestorage.app"
+    "project_number": "126773794688",
+    "project_id": "gjp-lab",
+    "storage_bucket": "gjp-lab.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:907061493172:android:2c03c43bf7b6087cef86e1",
+        "mobilesdk_app_id": "1:126773794688:android:19837bff3af90406c1d365",
         "android_client_info": {
-          "package_name": "com.ganjianping.ak.sample"
+          "package_name": "com.ganjianping.lab.ak"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDL9K-1mgTfXjoCbb5NWyznEJAw2dxiDok"
+          "current_key": "AIzaSyAsIcCxPVChgpKC5pzOLFhUoiTKMh9CG6s"
         }
       ],
       "services": {

@@ -1,8 +1,8 @@
 # Firebase integration
 
-This Android app is connected to the `gjp-sample` Firebase project for Analytics, Remote Config, Crashlytics, and Performance Monitoring.
+This Android app is connected to the `gjp-lab` Firebase project for Analytics, Remote Config, Crashlytics, and Performance Monitoring.
 
-The Android application ID is `com.ganjianping.ak.sample`.
+The Android application ID is `com.ganjianping.lab.ak`.
 
 ## Common Firebase setup
 
@@ -56,7 +56,7 @@ The catalog maps this alias to `com.google.firebase:firebase-analytics`.
 
 ### Initialization and startup event
 
-Firebase SDK initialization is provided automatically by the Firebase startup provider. This app records a custom `app_started` event in `GJPSApplication.kt`:
+Firebase SDK initialization is provided automatically by the Firebase startup provider. This app records a custom `app_started` event in `GJPLabApplication.kt`:
 
 ```kotlin
 FirebaseAnalytics.getInstance(this)
@@ -100,7 +100,7 @@ The catalog maps this alias to `com.google.firebase:firebase-config`.
 
 ### Defaults and fetch
 
-`GJPSApplication.kt` configures a local fallback, sets the fetch interval, and starts a fetch:
+`GJPLabApplication.kt` configures a local fallback, sets the fetch interval, and starts a fetch:
 
 ```kotlin
 val remoteConfig = FirebaseRemoteConfig.getInstance()
@@ -143,7 +143,7 @@ The project-level plugin is declared in the root `build.gradle.kts`, applied in 
 implementation(libs.firebase.crashlytics)
 ```
 
-The app records its version as Crashlytics metadata in `GJPSApplication.kt`:
+The app records its version as Crashlytics metadata in `GJPLabApplication.kt`:
 
 ```kotlin
 FirebaseCrashlytics.getInstance()
@@ -224,11 +224,11 @@ These are all project files changed for the Firebase integration:
 
 | File | Purpose |
 | --- | --- |
-| `app/google-services.json` | Firebase project and Android app configuration for `com.ganjianping.ak.sample`. |
+| `app/google-services.json` | Firebase project and Android app configuration for `com.ganjianping.lab.ak`. |
 | `build.gradle.kts` | Declares the Google Services, Crashlytics, and Performance project-level plugins. |
 | `app/build.gradle.kts` | Applies Firebase plugins, enables BuildConfig generation, imports the Firebase BoM, and adds Analytics, Remote Config, Crashlytics, and Performance dependencies. |
 | `gradle/libs.versions.toml` | Centralizes Firebase BoM, Gradle plugin, library, and version-catalog aliases. |
-| `app/src/main/java/com/ganjianping/ak/sample/GJPSApplication.kt` | Logs the startup Analytics event, adds the Crashlytics app-version key, and configures Remote Config defaults and fetching. |
+| `app/src/main/java/com/ganjianping/lab/ak/GJPLabApplication.kt` | Logs the startup Analytics event, adds the Crashlytics app-version key, and configures Remote Config defaults and fetching. |
 | `doc/FIREBASE_INTEGRATION.md` | Documents the integration and usage examples. |
 
 ## Verification commands
@@ -249,7 +249,7 @@ The generated build should include Firebase initialization components in the mer
 
 ## Maintaining the integration
 
-If the Firebase Android app or project changes, download the new `google-services.json` from the Firebase Console and replace `app/google-services.json`. Confirm that its `package_name` remains `com.ganjianping.ak.sample`.
+If the Firebase Android app or project changes, download the new `google-services.json` from the Firebase Console and replace `app/google-services.json`. Confirm that its `package_name` remains `com.ganjianping.lab.ak`.
 
 The client configuration contains app identifiers and an API key intended for client applications. It is not a replacement for Firebase Authentication, Firestore, Storage, Remote Config, or server-side security rules.
 

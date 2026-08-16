@@ -1,6 +1,6 @@
-# GJPS Android Feature Lab
+# GJPLab Android Feature Lab (`com.ganjianping.lab.ak`)
 
-GJPS is a small Kotlin Android app for learning modern Android fundamentals by reading, running, and extending working features. The UI is built with Jetpack Compose and Material 3; the app uses Activities for navigation and Koin for repository injection.
+GJPLab is a small Kotlin Android app for learning modern Android fundamentals by reading, running, and extending working features. The UI is built with Jetpack Compose and Material 3; the app uses Activities for navigation and Koin for repository injection.
 
 The repository also includes a structured [Android development tuition guide](ANDROID_TUITION.md), with lessons and exercises that build on the code in this project.
 
@@ -67,7 +67,7 @@ The screen starts with a sample endpoint, but any endpoint must be reachable fro
 ├── app/
 │   └── src/
 │       ├── main/
-│       │   ├── java/com/ganjianping/ak/sample/
+│       │   ├── java/com/ganjianping/lab/ak/
 │       │   │   ├── common/theme/          # Compose theme, colors, typography
 │       │   │   ├── di/                    # Koin module
 │       │   │   ├── features/deviceinfo/   # Device information feature
@@ -94,7 +94,7 @@ Repositories are registered as Koin singletons in `di/AppModule.kt` and injected
 
 ## Firebase
 
-The app initializes Firebase in `GJPSApplication` and currently:
+The app initializes Firebase in `GJPLabApplication` and currently:
 
 - logs an `app_started` Analytics event;
 - stores the app version as a Crashlytics custom key;
