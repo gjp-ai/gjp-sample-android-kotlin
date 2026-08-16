@@ -94,11 +94,12 @@ Repositories are registered as Koin singletons in `di/AppModule.kt` and injected
 
 ## Firebase
 
-The app initializes Firebase in `GJPLabApplication` and currently:
+`GJPLabApplication` starts the `integration/firebase/FirebaseIntegration` layer, which currently:
 
 - logs an `app_started` Analytics event;
 - stores the app version as a Crashlytics custom key;
-- configures a `sample_feature_enabled` Remote Config default and fetch interval;
+- configures and fetches the `gjp_lab_maintenance_enabled` Remote Config flag;
+- shows a maintenance page after launch when `gjp_lab_maintenance_enabled` is `true`;
 - includes the Performance Monitoring SDK and Gradle plugin.
 
 Firebase is configured with [`app/google-services.json`](app/google-services.json). This contains client-side project configuration, not server credentials. Restrict the associated API key to the Android package and signing certificates, and protect Firebase resources with Authentication, Security Rules, and App Check. Never commit service-account credentials, server keys, OAuth secrets, or App Check debug tokens.

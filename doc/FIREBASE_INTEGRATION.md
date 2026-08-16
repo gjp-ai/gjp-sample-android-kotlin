@@ -4,6 +4,16 @@ This Android app is connected to the `gjp-lab` Firebase project for Analytics, R
 
 The Android application ID is `com.ganjianping.lab.ak`.
 
+The current application-level integration performs these actions:
+
+- logs an Analytics `app_started` event;
+- records the app version in Crashlytics as `app_version`;
+- configures Remote Config with a safe `gjp_lab_maintenance_enabled = false` default;
+- fetches the maintenance flag after the splash flow reaches `MainActivity`;
+- shows a maintenance page after launch when `gjp_lab_maintenance_enabled` is `true`.
+
+The app does not currently record custom Crashlytics exceptions or create custom Performance traces. The examples below show safe extension points for those features.
+
 ## Common Firebase setup
 
 Firebase uses the configuration file at `app/google-services.json`. The file contains the Firebase project and Android app identifiers for this package.
@@ -12,6 +22,13 @@ The Google Services Gradle plugin reads that file during the build and generates
 
 Firebase library versions are managed with the Firebase Android BoM. Individual Firebase dependencies therefore do not declare their own versions.
 
+The versions currently used by this project are:
+
+| Component | Version |
+| --- | --- |
+| Firebase Android BoM | `34.16.0` |
+| Google Services Gradle plugin | `4.5.0` |
+
 ### Gradle files
 
 The root `build.gradle.kts` declares the project-level plugins:
@@ -19,18 +36,14 @@ The root `build.gradle.kts` declares the project-level plugins:
 ```kotlin
 plugins {
     alias(libs.plugins.google.services) apply false
-    alias(libs.plugins.firebase.crashlytics) apply false
-    alias(libs.plugins.firebase.performance) apply false
 }
 ```
 
-The app module applies the plugins and imports the BoM:
+The app module applies the Google Services plugin and imports the BoM:
 
 ```kotlin
 plugins {
     alias(libs.plugins.google.services)
-    alias(libs.plugins.firebase.crashlytics)
-    alias(libs.plugins.firebase.performance)
 }
 
 dependencies {
@@ -39,6 +52,16 @@ dependencies {
 ```
 
 The actual plugin and library versions are centralized in `gradle/libs.versions.toml`.
+
+The version-catalog aliases are equivalent to declaring the Google Services plugin inline:
+
+```kotlin
+id("com.google.gms.google-services") version "4.5.0" apply false
+```
+
+This is a Gradle plugin declaration, not an `implementation` dependency. The plugin processes `app/google-services.json`; the Firebase SDKs are added separately through the BoM and the library aliases.
+
+Firebase SDK objects and `FirebaseIntegration` are registered as Koin singletons in `integration/firebase/FirebaseModule.kt`. The application starts Koin before requesting the `FirebaseIntegration` instance.
 
 ## Firebase Analytics
 
@@ -56,12 +79,13 @@ The catalog maps this alias to `com.google.firebase:firebase-analytics`.
 
 ### Initialization and startup event
 
-Firebase SDK initialization is provided automatically by the Firebase startup provider. This app records a custom `app_started` event in `GJPLabApplication.kt`:
+Firebase SDK initialization is provided automatically by the Firebase startup provider. `GJPLabApplication.kt` starts Koin and initializes the injected `FirebaseIntegration` instance, which records the custom `app_started` event:
 
 ```kotlin
-FirebaseAnalytics.getInstance(this)
-    .logEvent("app_started", Bundle())
+get<FirebaseIntegration>().initialize()
 ```
+
+The integration class receives `FirebaseAnalytics`, `FirebaseCrashlytics`, and `FirebaseRemoteConfig` through its constructor. This keeps Firebase SDK access in the `integration/firebase` package and makes the integration replaceable in tests.
 
 ### Custom event sample
 
@@ -86,7 +110,7 @@ Avoid putting personally identifiable information into event names or parameters
 
 ## Firebase Remote Config
 
-Remote Config lets the app change behavior or values from the Firebase console without requiring a new APK release. In this project, “Firebase Events Config” is represented by Firebase Remote Config plus Analytics events.
+Remote Config lets the app change behavior or values from the Firebase console without requiring a new APK release. This project uses it to control the maintenance page shown after launch.
 
 ### Dependency
 
@@ -100,57 +124,70 @@ The catalog maps this alias to `com.google.firebase:firebase-config`.
 
 ### Defaults and fetch
 
-`GJPLabApplication.kt` configures a local fallback, sets the fetch interval, and starts a fetch:
+`FirebaseIntegration.initialize()` configures a local fallback and sets the fetch interval:
 
 ```kotlin
-val remoteConfig = FirebaseRemoteConfig.getInstance()
 remoteConfig.setConfigSettingsAsync(
     FirebaseRemoteConfigSettings.Builder()
         .setMinimumFetchIntervalInSeconds(if (BuildConfig.DEBUG) 0 else 3600)
         .build()
 )
 remoteConfig.setDefaultsAsync(
-    mapOf("sample_feature_enabled" to false)
+    mapOf("gjp_lab_maintenance_enabled" to false)
 )
-remoteConfig.fetchAndActivate()
 ```
 
-Read a value after fetch and activation completes:
+`FirebaseIntegration.fetchMaintenanceMode()` fetches and reads the value after activation completes:
 
 ```kotlin
-FirebaseRemoteConfig.getInstance()
-    .fetchAndActivate()
-    .addOnCompleteListener { task ->
-        if (task.isSuccessful) {
-            val enabled = FirebaseRemoteConfig.getInstance()
-                .getBoolean("sample_feature_enabled")
-            // Apply the remote value to the UI or feature behavior.
-        }
-    }
+firebaseIntegration.fetchMaintenanceMode { enabled ->
+    // Show the maintenance page when enabled.
+}
 ```
 
-Always provide a safe local default. Configure the matching `sample_feature_enabled` parameter in the Firebase Console before relying on a production value.
+`MainActivity` calls `fetchAndActivate()` after the splash flow reaches the main screen. It reads `gjp_lab_maintenance_enabled` after the fetch completes; while the result is loading, the branded splash screen remains visible. If the value is `true`, the app shows `MaintenanceScreen`; otherwise it shows the normal feature dashboard. The default is `false`, so a fetch failure fails open to the dashboard. Configure the matching `gjp_lab_maintenance_enabled` parameter in the Firebase Console before enabling maintenance mode.
 
 ## Firebase Crashlytics
 
 Crashlytics reports crashes, non-fatal exceptions, and ANRs in the Firebase Console. The Crashlytics Gradle plugin also handles mapping-file processing for obfuscated release builds.
 
+This project uses Crashlytics Gradle plugin version `3.0.7`.
+
 ### Plugin and dependency
 
-The project-level plugin is declared in the root `build.gradle.kts`, applied in `app/build.gradle.kts`, and the SDK is added through the BoM:
+Declare the Crashlytics Gradle plugin at the project level and apply it in the app module:
+
+Root `build.gradle.kts`:
+
+```kotlin
+plugins {
+    alias(libs.plugins.firebase.crashlytics) apply false
+}
+```
+
+App `app/build.gradle.kts`:
+
+```kotlin
+plugins {
+    alias(libs.plugins.firebase.crashlytics)
+}
+```
+
+Add the Crashlytics SDK through the Firebase BoM:
 
 ```kotlin
 implementation(libs.firebase.crashlytics)
 ```
 
-The app records its version as Crashlytics metadata in `GJPLabApplication.kt`:
+The app records its version as Crashlytics metadata in `FirebaseIntegration.kt`, using the injected Crashlytics instance:
 
 ```kotlin
-FirebaseCrashlytics.getInstance()
-    .setCustomKey("app_version", BuildConfig.VERSION_NAME)
+crashlytics.setCustomKey("app_version", BuildConfig.VERSION_NAME)
 ```
 
 `buildConfig = true` is enabled in `app/build.gradle.kts` so `BuildConfig.VERSION_NAME` is available.
+
+The current application only sets the `app_version` custom key. The non-fatal exception and logging snippets below are examples; no application code currently calls `recordException()` or adds feature-specific Crashlytics logs.
 
 ### Non-fatal exception sample
 
@@ -187,15 +224,37 @@ Crash reports can take time to appear after the app is restarted and network con
 
 Performance Monitoring automatically collects app-start and screen-rendering metrics. Its Gradle plugin instruments supported network requests and enables custom trace instrumentation.
 
+This project uses Performance Monitoring Gradle plugin version `2.0.2`.
+
 ### Plugin and dependency
 
-The project-level plugin is declared in the root `build.gradle.kts`, applied in `app/build.gradle.kts`, and the SDK is added through the BoM:
+Declare the Performance Monitoring Gradle plugin at the project level and apply it in the app module:
+
+Root `build.gradle.kts`:
+
+```kotlin
+plugins {
+    alias(libs.plugins.firebase.performance) apply false
+}
+```
+
+App `app/build.gradle.kts`:
+
+```kotlin
+plugins {
+    alias(libs.plugins.firebase.performance)
+}
+```
+
+Add the Performance Monitoring SDK through the Firebase BoM:
 
 ```kotlin
 implementation(libs.firebase.perf)
 ```
 
 No manual initialization is required for the automatic metrics.
+
+The current application does not create a custom Performance trace. The trace below is an example for instrumenting a specific operation. The existing `HttpURLConnection` feature remains eligible for supported automatic network monitoring when the Performance plugin is active.
 
 ### Custom trace sample
 
@@ -228,7 +287,13 @@ These are all project files changed for the Firebase integration:
 | `build.gradle.kts` | Declares the Google Services, Crashlytics, and Performance project-level plugins. |
 | `app/build.gradle.kts` | Applies Firebase plugins, enables BuildConfig generation, imports the Firebase BoM, and adds Analytics, Remote Config, Crashlytics, and Performance dependencies. |
 | `gradle/libs.versions.toml` | Centralizes Firebase BoM, Gradle plugin, library, and version-catalog aliases. |
-| `app/src/main/java/com/ganjianping/lab/ak/GJPLabApplication.kt` | Logs the startup Analytics event, adds the Crashlytics app-version key, and configures Remote Config defaults and fetching. |
+| `app/src/main/java/com/ganjianping/lab/ak/di/AppModule.kt` | Includes the Firebase Koin module with the app’s other dependency modules. |
+| `app/src/main/java/com/ganjianping/lab/ak/GJPLabApplication.kt` | Starts the app-level Firebase integration during application startup. |
+| `app/src/main/java/com/ganjianping/lab/ak/integration/firebase/FirebaseIntegration.kt` | Encapsulates Firebase Analytics, Crashlytics, Remote Config setup, and maintenance-flag fetching. |
+| `app/src/main/java/com/ganjianping/lab/ak/integration/firebase/FirebaseModule.kt` | Registers Firebase SDK instances and `FirebaseIntegration` as Koin singletons. |
+| `app/src/main/java/com/ganjianping/lab/ak/integration/firebase/FirebaseConstants.kt` | Centralizes Firebase event names, Crashlytics keys, and Remote Config keys. |
+| `app/src/main/java/com/ganjianping/lab/ak/MainActivity.kt` | Fetches the maintenance flag after launch and selects the maintenance or dashboard screen. |
+| `app/src/main/java/com/ganjianping/lab/ak/MaintenanceScreen.kt` | Displays the maintenance message and retry action. |
 | `doc/FIREBASE_INTEGRATION.md` | Documents the integration and usage examples. |
 
 ## Verification commands
@@ -245,7 +310,13 @@ Build the debug APK with all Firebase plugins enabled:
 ./gradlew :app:assembleDebug
 ```
 
-The generated build should include Firebase initialization components in the merged manifest, Crashlytics processing tasks, Performance instrumentation, and generated resources such as `google_app_id`.
+Run the local unit tests as well:
+
+```bash
+./gradlew :app:test
+```
+
+The generated build should include Firebase initialization components in the merged manifest, Crashlytics processing tasks, Performance instrumentation, and generated resources such as `google_app_id`. The Google Services task also validates that the JSON client package matches `com.ganjianping.lab.ak`.
 
 ## Maintaining the integration
 

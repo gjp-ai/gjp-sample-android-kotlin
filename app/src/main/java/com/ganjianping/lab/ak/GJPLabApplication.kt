@@ -1,40 +1,25 @@
 package com.ganjianping.lab.ak
 
 import android.app.Application
-import android.os.Bundle
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.ganjianping.lab.ak.di.appModule
+import com.ganjianping.lab.ak.integration.firebase.FirebaseIntegration
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import org.koin.core.context.startKoin
 
-class GJPLabApplication : Application() {
+class GJPLabApplication : Application(), KoinComponent {
     override fun onCreate() {
         super.onCreate()
-
-        initializeFirebase()
 
         startKoin {
             androidLogger()
             androidContext(this@GJPLabApplication)
             modules(appModule)
         }
+
+        get<FirebaseIntegration>().initialize()
     }
 
-    private fun initializeFirebase() {
-        FirebaseAnalytics.getInstance(this).logEvent("app_started", Bundle())
-        FirebaseCrashlytics.getInstance().setCustomKey("app_version", BuildConfig.VERSION_NAME)
-
-        FirebaseRemoteConfig.getInstance().apply {
-            setConfigSettingsAsync(
-                com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings.Builder()
-                    .setMinimumFetchIntervalInSeconds(if (BuildConfig.DEBUG) 0 else 3600)
-                    .build()
-            )
-            setDefaultsAsync(mapOf("sample_feature_enabled" to false))
-            fetchAndActivate()
-        }
-    }
 }
